@@ -1,0 +1,22 @@
+name: test
+
+on:
+  push:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: 'bash --noprofile --norc -Eeuo pipefail -x {0}'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: |
+          docker buildx create --name test
+          cat > Dockerfile <<-'EOF'
+            FROM alpine
+          EOF
+          docker buildx build --builder test --attest type=sbom --output type=oci,dest=defaults,tar=false - < Dockerfile
+          jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' defaults/index.json | xargs -rt jq .
