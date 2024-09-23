@@ -17,13 +17,13 @@ jobs:
           - ubuntu-22.04
           - ubuntu-20.04
         generator:
-          - docker/buildkit-syft-scanner
-          - docker/scout-sbom-indexer
+          - buildkit-syft-scanner
+          - scout-sbom-indexer
     runs-on: ${{ matrix.os }}
     steps:
       - name: test
         env:
-          generator: ${{ matrix.generator }}
+          generator: docker/${{ matrix.generator }}
         run: |
           docker buildx create --name test
           docker buildx build --builder test --attest type=sbom,generator="$generator" --output type=oci,dest=oci,tar=false - <<<'FROM alpine'
