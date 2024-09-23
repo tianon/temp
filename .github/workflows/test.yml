@@ -19,4 +19,4 @@ jobs:
             FROM alpine
           EOF
           docker buildx build --builder test --attest type=sbom --output type=oci,dest=defaults,tar=false - < Dockerfile
-          jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' defaults/index.json | xargs -rt jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.layers[]'
+          jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' defaults/index.json | xargs -rt jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.layers[] | select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document") | .digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.'
