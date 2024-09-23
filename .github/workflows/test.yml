@@ -26,10 +26,12 @@ jobs:
           generator: ${{ matrix.generator }}
         run: |
           docker buildx create --name test
-          cat > Dockerfile <<-'EOF'
-            FROM alpine
-          EOF
-          docker buildx build --builder test --attest type=sbom,generator="$generator" --output type=oci,dest=defaults,tar=false - < Dockerfile
-          sbomFiles="$(jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' defaults/index.json | xargs -rt jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.layers[] | select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document") | .digest | "defaults/blobs/" + sub(":"; "/")')"
+          docker buildx build --builder test --attest type=sbom,generator="$generator" --output type=oci,dest=oci,tar=false - <<<'FROM alpine'
+          sbomFiles="$(jq '.manifests[].digest | "oci/blobs/" + sub(":"; "/")' oci/index.json | xargs -rt jq '.manifests[].digest | "oci/blobs/" + sub(":"; "/")' | xargs -rt jq '.layers[] | select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document") | .digest | "oci/blobs/" + sub(":"; "/")')"
           xargs <<<"$sbomFiles" -rt jq -r '.predicate.packages | length'
           xargs <<<"$sbomFiles" -rt jq -r '.predicate.packages[] | .name, (.externalRefs | tojson)'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oci-${{ matrix.os }}-${{ matrix.generator }}
+          path: oci
