@@ -10,13 +10,24 @@ defaults:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
+        generator:
+          - docker/buildkit-syft-scanner
+          - docker/scout-sbom-indexer
+    runs-on: ${{ matrix.os }}
     steps:
       - name: test
+        env:
+          generator: ${{ matrix.generator }}
         run: |
           docker buildx create --name test
           cat > Dockerfile <<-'EOF'
             FROM alpine
           EOF
-          docker buildx build --builder test --attest type=sbom --output type=oci,dest=defaults,tar=false - < Dockerfile
-          jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' defaults/index.json | xargs -rt jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.layers[] | select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document") | .digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.'
+          docker buildx build --builder test --attest type=sbom,generator="$generator" --output type=oci,dest=defaults,tar=false - < Dockerfile
+          jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' defaults/index.json | xargs -rt jq '.manifests[].digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.layers[] | select(.annotations["in-toto.io/predicate-type"] == "https://spdx.dev/Document") | .digest | "defaults/blobs/" + sub(":"; "/")' | xargs -rt jq '.predicate.packages | length'
