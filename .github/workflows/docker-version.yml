@@ -34,6 +34,7 @@ jobs:
           - 3
           - 4
           - 5
+      fail-fast: false
     runs-on: ${{ matrix.runner }}
     steps:
       - run: 'docker version'
