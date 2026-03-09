@@ -47,3 +47,11 @@ jobs:
           powershell -Command 'Get-EventLog -LogName Application -EntryType Error,Warning | Export-Csv -Path application_logs.csv'
           cat system_logs.csv
           cat application_logs.csv
+      - name: upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-system-logs
+          path: |
+            system_logs.csv
+            application_logs.csv
