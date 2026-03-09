@@ -28,6 +28,12 @@ jobs:
           - ubuntu-24.04-arm
           - windows-2022
           - windows-2025
+        try:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
     runs-on: ${{ matrix.runner }}
     steps:
       - run: 'docker version'
