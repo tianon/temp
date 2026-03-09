@@ -22,12 +22,12 @@ jobs:
       matrix:
         runner:
           # https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
-          - ubuntu-22.04
-          - ubuntu-22.04-arm
-          - ubuntu-24.04
-          - ubuntu-24.04-arm
           - windows-2022
           - windows-2025
+          #- ubuntu-22.04
+          #- ubuntu-22.04-arm
+          #- ubuntu-24.04
+          #- ubuntu-24.04-arm
         try:
           - 1
           - 2
@@ -38,3 +38,12 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - run: 'docker version'
+      - name: logs
+        if: always()
+        #shell: powershell
+        # TODO Linux
+        run: |
+          powershell -Command 'Get-EventLog -LogName System -EntryType Error,Warning | Export-Csv -Path system_logs.csv'
+          powershell -Command 'Get-EventLog -LogName Application -EntryType Error,Warning | Export-Csv -Path application_logs.csv'
+          cat system_logs.csv
+          cat application_logs.csv
