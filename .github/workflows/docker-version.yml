@@ -1,0 +1,33 @@
+name: docker version
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: 'bash -Eeuo pipefail -x {0}'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  docker-version:
+    strategy:
+      matrix:
+        runner:
+          # https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#choosing-github-hosted-runners
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - windows-2022
+          - windows-2025
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - run: 'docker version'
